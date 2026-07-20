@@ -27,6 +27,9 @@ jobs:
       - name: Install Capacitor dependencies
         run: npm ci
 
+      - name: Sync Capacitor Android project
+        run: npx cap sync android
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
