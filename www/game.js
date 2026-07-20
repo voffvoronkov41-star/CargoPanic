@@ -90,10 +90,30 @@
 
   function spawnCrate() {
     if (falling) return;
-    const preferred = Math.floor(Math.random() * COLS);
     const available = [...Array(COLS).keys()].filter(c => !board[0][c] && !(player.row === 0 && player.col === c));
     if (!available.length) return gameOver();
-    const col = available.includes(preferred) ? preferred : available[Math.floor(Math.random() * available.length)];
+    const rows = available.map(col => ({ col, row: landingRow(col) }));
+    const lowestOpenRow = Math.max(...rows.map(item => item.row));
+
+    // Keep each layer reasonably compact. Most drops target the shortest
+    // columns; occasional less-perfect drops preserve the need to rearrange.
+    const balancedDrop = Math.random() < .84;
+    const pool = balancedDrop
+      ? rows.filter(item => item.row === lowestOpenRow)
+      : rows.filter(item => item.row >= lowestOpenRow - 1);
+
+    const weights = pool.map(item => {
+      const leftJoined = item.col > 0 && board[item.row]?.[item.col - 1];
+      const rightJoined = item.col < COLS - 1 && board[item.row]?.[item.col + 1];
+      return 1 + (leftJoined ? 2.5 : 0) + (rightJoined ? 2.5 : 0);
+    });
+    let roll = Math.random() * weights.reduce((sum, value) => sum + value, 0);
+    let chosen = pool[pool.length - 1];
+    for (let i = 0; i < pool.length; i++) {
+      roll -= weights[i];
+      if (roll <= 0) { chosen = pool[i]; break; }
+    }
+    const col = chosen.col;
     falling = { col, y: BOARD_Y - CELL * 1.2, row: -1, type: crateType(), speed: 130 + level * 13, warning: 380 };
   }
 
