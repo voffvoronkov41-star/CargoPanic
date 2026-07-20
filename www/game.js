@@ -250,7 +250,7 @@
     const g = ctx.createLinearGradient(0,0,0,H);
     g.addColorStop(0,'rgba(20,32,35,.22)'); g.addColorStop(.55,'rgba(255,170,72,.02)'); g.addColorStop(1,'rgba(20,26,29,.28)');
     ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
-    ctx.fillStyle = 'rgba(23,36,42,.75)';
+    ctx.fillStyle = 'rgba(23,36,42,.60)';
     roundRect(BOARD_X-10, BOARD_Y-10, COLS*CELL+20, ROWS*CELL+20, 15); ctx.fill();
     for (let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) {
       ctx.fillStyle = (r+c)%2 ? 'rgba(255,255,255,.025)' : 'rgba(0,0,0,.025)';
