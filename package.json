@@ -1,0 +1,21 @@
+{
+  "name": "cargo-panic",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Original Android-ready crate stacking arcade game",
+  "scripts": {
+    "serve": "http-server www -p 8080 -c-1",
+    "test": "node tests/smoke.mjs",
+    "android:sync": "npx cap sync android",
+    "android:open": "npx cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/core": "^7.4.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.3",
+    "http-server": "^14.1.1",
+    "jsdom": "^29.1.1"
+  }
+}

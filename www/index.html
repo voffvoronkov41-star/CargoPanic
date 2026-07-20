@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#17242a" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>Cargo Panic</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main id="app">
+    <section id="gameShell" aria-label="Cargo Panic">
+      <canvas id="game" width="960" height="540"></canvas>
+
+      <header class="hud" aria-live="polite">
+        <div><span>СЧЁТ</span><strong id="score">0</strong></div>
+        <div><span>УРОВЕНЬ</span><strong id="level">1</strong></div>
+        <div><span>РЕКОРД</span><strong id="highScore">0</strong></div>
+        <button id="pauseBtn" class="icon-btn" aria-label="Пауза">Ⅱ</button>
+      </header>
+
+      <div id="startScreen" class="overlay visible">
+        <div class="panel">
+          <p class="eyebrow">АРКАДА НА СКЛАДЕ</p>
+          <h1>CARGO<br><em>PANIC</em></h1>
+          <p>Толкай ящики и собирай полные ряды. Следи за краном — груз не ждёт!</p>
+          <button id="startBtn" class="primary">НАЧАТЬ СМЕНУ</button>
+          <button id="howBtn" class="secondary">КАК ИГРАТЬ</button>
+        </div>
+      </div>
+
+      <div id="howScreen" class="overlay">
+        <div class="panel compact">
+          <h2>Как играть</h2>
+          <ul>
+            <li>Двигайся кнопками слева и справа.</li>
+            <li>Ящики толкаются автоматически.</li>
+            <li>Кнопка вверх помогает взобраться.</li>
+            <li>Полный ряд исчезает и приносит очки.</li>
+            <li>Не стой под падающим грузом.</li>
+          </ul>
+          <button id="howCloseBtn" class="primary">ПОНЯТНО</button>
+        </div>
+      </div>
+
+      <div id="pauseScreen" class="overlay">
+        <div class="panel compact">
+          <p class="eyebrow">ПЕРЕРЫВ</p>
+          <h2>Пауза</h2>
+          <button id="resumeBtn" class="primary">ПРОДОЛЖИТЬ</button>
+          <button id="restartPauseBtn" class="secondary">НАЧАТЬ ЗАНОВО</button>
+        </div>
+      </div>
+
+      <div id="gameOverScreen" class="overlay">
+        <div class="panel compact">
+          <p class="eyebrow">СМЕНА ОКОНЧЕНА</p>
+          <h2>Груз настиг тебя</h2>
+          <p>Результат: <strong id="finalScore">0</strong></p>
+          <p id="newRecord" class="record">НОВЫЙ РЕКОРД!</p>
+          <button id="restartBtn" class="primary">ЕЩЁ РАЗ</button>
+        </div>
+      </div>
+
+      <nav class="controls" aria-label="Управление">
+        <button id="leftBtn" aria-label="Влево">◀</button>
+        <button id="rightBtn" aria-label="Вправо">▶</button>
+        <button id="climbBtn" class="climb" aria-label="Взобраться">▲</button>
+      </nav>
+    </section>
+  </main>
+  <script src="game.js"></script>
+</body>
+</html>

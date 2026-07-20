@@ -1,0 +1,6 @@
+{
+  "appId": "com.cargopanic.game",
+  "appName": "Cargo Panic",
+  "webDir": "www",
+  "server": { "androidScheme": "https" }
+}
