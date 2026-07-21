@@ -103,14 +103,16 @@
     const rows = available.map(col => ({ col, row: landingRow(col) }));
     const lowestOpenRow = Math.max(...rows.map(item => item.row));
 
-    // Keep each layer reasonably compact. Most drops target the shortest
-    // columns; occasional less-perfect drops preserve the need to rearrange.
-    const balancedDrop = Math.random() < .84;
+    // Early drops are partly balanced, but crates can also land on existing
+    // stacks. Higher levels increasingly favour unpredictable towers.
+    const balanceChance = Math.max(.28, .58 - level * .05);
+    const balancedDrop = Math.random() < balanceChance;
     const pool = balancedDrop
       ? rows.filter(item => item.row === lowestOpenRow)
-      : rows.filter(item => item.row >= lowestOpenRow - 1);
+      : rows;
 
     const weights = pool.map(item => {
+      if (!balancedDrop) return 1;
       const leftJoined = item.col > 0 && board[item.row]?.[item.col - 1];
       const rightJoined = item.col < COLS - 1 && board[item.row]?.[item.col + 1];
       return 1 + (leftJoined ? 2.5 : 0) + (rightJoined ? 2.5 : 0);
