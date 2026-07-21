@@ -23,7 +23,15 @@
   const BOARD_X = (W - COLS * CELL) / 2;
   const BOARD_Y = 106;
   const FLOOR_Y = BOARD_Y + ROWS * CELL;
-  const CRATE_SEGMENTS = 5;
+  // Tight bounds of the five crate drawings inside the generated sprite sheet.
+  // The source contains large transparent margins that must not reach the board.
+  const CRATE_FRAMES = [
+    { x: 55,   y: 173, w: 346, h: 352 },
+    { x: 480,  y: 172, w: 352, h: 354 },
+    { x: 912,  y: 172, w: 347, h: 355 },
+    { x: 1338, y: 172, w: 349, h: 354 },
+    { x: 1767, y: 172, w: 349, h: 355 }
+  ];
   const WORKER_SEGMENTS = 6;
 
   let state = 'menu';
@@ -289,8 +297,8 @@
   function drawCrate(col,row,type,yOverride=null) {
     const x=BOARD_X+col*CELL+1, y=(yOverride ?? BOARD_Y+row*CELL)+1, size=CELL-2;
     if (!assets.crates.complete) { ctx.fillStyle='#b76b2e';ctx.fillRect(x,y,size,size);return; }
-    const sw=assets.crates.naturalWidth/CRATE_SEGMENTS, sh=assets.crates.naturalHeight;
-    ctx.drawImage(assets.crates, type*sw,0,sw,sh, x,y,size,size);
+    const frame=CRATE_FRAMES[type] || CRATE_FRAMES[0];
+    ctx.drawImage(assets.crates, frame.x,frame.y,frame.w,frame.h, x,y,size,size);
   }
 
   function drawFalling() {
