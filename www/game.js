@@ -161,9 +161,12 @@
   }
 
   function landingRow(col) {
-    let row = ROWS - 1;
-    while (row >= 0 && board[row][col]) row--;
-    return row;
+    // Find the first obstacle from above. This remains correct even if a
+    // movable crate has only just started settling and prevents pass-through.
+    for (let row = 0; row < ROWS; row++) {
+      if (board[row][col]) return row - 1;
+    }
+    return ROWS - 1;
   }
 
   function landCrate(row) {
@@ -188,6 +191,7 @@
       board[r][c] = null;
       addScore(80, c, r);
       burst(BOARD_X + c*CELL + CELL/2, BOARD_Y + r*CELL + CELL/2, 2, 16);
+      settleBoard();
     }
   }
 
@@ -236,7 +240,7 @@
           board[player.row][beyond] = null;
           burst(BOARD_X + beyond*CELL + CELL/2, BOARD_Y + player.row*CELL + CELL/2, 3, 18);
         }
-        clearRows(); vibrate(12);
+        settleBoard(); clearRows(); vibrate(12);
       }
     }
     applyPlayerGravity();
@@ -246,10 +250,52 @@
     if (state !== 'playing' || moveCooldown > 0) return;
     const front = player.col + player.facing;
     const up = player.row - 1;
-    if (up < 0) return;
+    if (up < 0 || front < 0 || front >= COLS) return;
+
+    // Jump-shove: push a crate from the layer above while standing beside
+    // the stack, matching the upper-crate move from classic stacking games.
+    const upperCrate = board[up][front];
+    const beyond = front + player.facing;
+    if (upperCrate && beyond >= 0 && beyond < COLS && !board[up][beyond]
+        && !(falling && falling.col === beyond && Math.abs(falling.y - (BOARD_Y + up*CELL)) < CELL)) {
+      board[up][beyond] = upperCrate;
+      board[up][front] = null;
+      player.frame = 3; player.walking = .2; moveCooldown = .22;
+      addScore(upperCrate.type === 3 ? 35 : 20, beyond, up);
+      if (upperCrate.type === 3) {
+        board[up][beyond] = null;
+        burst(BOARD_X + beyond*CELL + CELL/2, BOARD_Y + up*CELL + CELL/2, 3, 18);
+      }
+      settleBoard(); clearRows(); applyPlayerGravity(); vibrate(14);
+      return;
+    }
+
     if (front >= 0 && front < COLS && board[player.row][front] && !board[up][front] && !board[up][player.col]) {
       player.col = front; player.row = up; player.walking = .22; moveCooldown = .2; vibrate(10);
     }
+  }
+
+  function settleBoard() {
+    let changed = false;
+    let moved = true;
+    while (moved) {
+      moved = false;
+      for (let row = ROWS - 2; row >= 0; row--) {
+        for (let col = 0; col < COLS; col++) {
+          if (!board[row][col] || board[row + 1][col]) continue;
+          if (player.col === col && player.row === row + 1) {
+            gameOver();
+            return changed;
+          }
+          board[row + 1][col] = board[row][col];
+          board[row][col] = null;
+          changed = true;
+          moved = true;
+        }
+      }
+    }
+    if (changed) shake = Math.max(shake, 2);
+    return changed;
   }
 
   function applyPlayerGravity() {
