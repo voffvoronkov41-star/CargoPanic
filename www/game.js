@@ -309,11 +309,12 @@
     if(!player || !assets.worker.complete) return;
     let frame = 0;
     if(player.walking>0) frame = player.frame===3 ? 3 : (Math.floor(performance.now()/110)%2)+1;
-    const sw=assets.worker.naturalWidth/WORKER_SEGMENTS, sh=assets.worker.naturalHeight;
-    const h=CELL*1.34, w=h*(sw/sh);
+    const sw=assets.worker.naturalWidth/WORKER_SEGMENTS;
+    const sourceH=591; // Ground frames end here; the sheet has empty space below the boots.
+    const h=CELL*1.45, w=h*(sw/sourceH);
     const x=BOARD_X+player.col*CELL+CELL/2;
-    const y=BOARD_Y+player.row*CELL+CELL-h;
-    ctx.save();ctx.translate(x,y+h/2);ctx.scale(player.facing,1);ctx.drawImage(assets.worker,frame*sw,0,sw,sh,-w/2,-h/2,w,h);ctx.restore();
+    const groundY=BOARD_Y+(player.row+1)*CELL;
+    ctx.save();ctx.translate(x,groundY);ctx.scale(player.facing,1);ctx.drawImage(assets.worker,frame*sw,0,sw,sourceH,-w/2,-h,w,h);ctx.restore();
   }
 
   function drawEffects() {
