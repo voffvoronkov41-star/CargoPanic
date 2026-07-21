@@ -114,7 +114,7 @@
       if (roll <= 0) { chosen = pool[i]; break; }
     }
     const col = chosen.col;
-    falling = { col, y: BOARD_Y - CELL * 1.2, row: -1, type: crateType(), speed: 130 + level * 13, warning: 380 };
+    falling = { col, y: BOARD_Y - CELL * 1.2, row: -1, type: crateType(), speed: 205 + level * 16, warning: 380 };
   }
 
   function update(dt) {
@@ -137,6 +137,7 @@
     } else {
       const targetRow = landingRow(falling.col);
       const targetY = BOARD_Y + targetRow * CELL;
+      falling.speed = Math.min(520, falling.speed + 360 * dt);
       falling.y += falling.speed * dt;
       if (falling.y >= targetY) {
         falling.y = targetY;
@@ -286,7 +287,7 @@
   }
 
   function drawCrate(col,row,type,yOverride=null) {
-    const x=BOARD_X+col*CELL+2, y=yOverride ?? BOARD_Y+row*CELL+2, size=CELL-4;
+    const x=BOARD_X+col*CELL+1, y=(yOverride ?? BOARD_Y+row*CELL)+1, size=CELL-2;
     if (!assets.crates.complete) { ctx.fillStyle='#b76b2e';ctx.fillRect(x,y,size,size);return; }
     const sw=assets.crates.naturalWidth/CRATE_SEGMENTS, sh=assets.crates.naturalHeight;
     ctx.drawImage(assets.crates, type*sw,0,sw,sh, x,y,size,size);
