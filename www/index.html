@@ -32,6 +32,7 @@
         <label for="player-name">Позывной</label>
         <input id="player-name" maxlength="16" autocomplete="off" placeholder="Введите имя">
         <button id="profile-submit" class="primary-button" disabled>ПОДКЛЮЧИТЬСЯ</button>
+        <button id="checkpoint-start" class="secondary-button checkpoint-button" disabled>Я УЖЕ ПРОШЁЛ ПРОЛОГ</button>
       </div>
     </section>
 
@@ -118,6 +119,18 @@
       <p id="ending-text"></p>
       <div id="ending-stats" class="ending-stats"></div>
       <button id="restart-button" class="secondary-button">НАЧАТЬ СНАЧАЛА</button>
+    </aside>
+
+    <aside id="checkpoint-overlay" class="overlay code-overlay hidden" role="dialog" aria-modal="true">
+      <p class="eyebrow">БЫСТРОЕ ПРОДОЛЖЕНИЕ</p>
+      <h2>Чем закончился пролог?</h2>
+      <p class="checkpoint-copy">Выбери положение тумблера — история продолжится сразу после него.</p>
+      <div class="checkpoint-choices">
+        <button data-midpoint="break">РАЗРЫВ</button>
+        <button data-midpoint="hold">УДЕРЖАНИЕ</button>
+        <button data-midpoint="cross">ПЕРЕХОД</button>
+      </div>
+      <button id="close-checkpoint" class="text-button">НАЗАД</button>
     </aside>
   </div>
   <script src="station-data.js"></script>

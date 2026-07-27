@@ -3,6 +3,8 @@
 
   const SAVE_KEY = "nightLineSaveV1";
   const STATION_SRC = window.STATION_IMAGE || "assets/station-07.png";
+  const CORRIDOR_SRC = window.CORRIDOR_IMAGE || "assets/corridor-07.png";
+  const ANYA_SRC = window.ANYA_IMAGE || "assets/anya-archive.png";
   const $ = selector => document.querySelector(selector);
   const $$ = selector => [...document.querySelectorAll(selector)];
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -16,7 +18,8 @@
     archives: [],
     flags: { trust: 0, answered: false, toldTruth: false, sawFigure: false, signalFound: false, mistakes: 0 },
     startedAt: Date.now(),
-    ending: null
+    ending: null,
+    version: 2
   });
 
   let state = freshState();
@@ -148,9 +151,255 @@
       ],
       archive: "operator",
       choices: [
-        { text: "РАЗРЫВ — выключить передатчик", ending: "break" },
-        { text: "УДЕРЖАНИЕ — сохранить линию", ending: "hold" },
-        { text: "ПЕРЕХОД — вывести Аню в 2026 год", ending: "cross" }
+        { text: "РАЗРЫВ — выключить передатчик", midpoint: "break" },
+        { text: "УДЕРЖАНИЕ — сохранить линию", midpoint: "hold" },
+        { text: "ПЕРЕХОД — вывести Аню в 2026 год", midpoint: "cross" }
+      ]
+    },
+    after_break: {
+      contact: "Канал 07",
+      messages: [
+        { type: "system", text: "ПЕРЕДАТЧИК ОСТАНОВЛЕН. НЕСУЩАЯ ЧАСТОТА ОТСУТСТВУЕТ.", delay: 700 },
+        { text: "Ты сделал это.", delay: 1300 },
+        { text: "Здесь стало тихо. Слишком тихо.", delay: 1200 },
+        { text: "Подожди… телефон в аппаратной всё ещё звонит, хотя питание отключено.", delay: 1500 },
+        { type: "system", text: "ОБНАРУЖЕН СЛАБЫЙ СИГНАЛ: КАНАЛ 12 / 2011 ГОД.", delay: 900 }
+      ],
+      choices: [{ text: "Подключить канал 12", next: "dimaIntro" }]
+    },
+    after_hold: {
+      contact: "Аня / Канал 07",
+      messages: [
+        { type: "system", text: "РЕЖИМ УДЕРЖАНИЯ. ДОПУСТИМАЯ ДЛИТЕЛЬНОСТЬ ПРЕВЫШЕНА.", delay: 700 },
+        { text: "Я вышла из аппаратной. Коридор выглядит длиннее, чем раньше.", delay: 1150 },
+        { text: "За каждой дверью слышу один и тот же телефонный звонок.", delay: 1300 },
+        { text: "На стене появилась фотография. На ней ты стоишь у входа в станцию.", delay: 1350 },
+        { type: "system", text: "ПАРАЛЛЕЛЬНОЕ ПОДКЛЮЧЕНИЕ: КАНАЛ 12 / 2011 ГОД.", delay: 900 }
+      ],
+      choices: [{ text: "Принять параллельный канал", next: "dimaIntro" }]
+    },
+    after_cross: {
+      contact: "Аня / 2026?",
+      messages: [
+        { type: "system", text: "ПЕРЕХОД ВЫПОЛНЕН. КОНТРОЛЬНАЯ ТОЧКА НЕ ОПРЕДЕЛЕНА.", delay: 700 },
+        { text: "{name}, я вижу комнату. Наверное, твою.", delay: 1100 },
+        { text: "Но здесь никого нет. На столе лежит телефон, и на нём открыт наш разговор.", delay: 1300 },
+        { text: "В отражении экрана кто-то стоит у меня за спиной.", delay: 1400 },
+        { type: "system", text: "ВХОДЯЩЕЕ СООБЩЕНИЕ: КАНАЛ 12 / 2011 ГОД.", delay: 900 }
+      ],
+      choices: [{ text: "Открыть сообщение", next: "dimaIntro" }]
+    },
+    dimaIntro: {
+      contact: "Дима / Канал 12",
+      messages: [
+        { text: "Если читаешь это — не верь тому, кто называет себя Аней.", delay: 1050 },
+        { text: "Я дежурил на седьмом ретрансляторе в ноябре 2011-го.", delay: 1200 },
+        { text: "Станция выбирает голос, которому ты доверяешь, и держит тебя на линии.", delay: 1350 },
+        { text: "В списках персонала за 1998 год Ани нет.", delay: 1100 },
+        { text: "Есть только фотография без фамилии.", delay: 900 },
+        { type: "photo", src: ANYA_SRC, delay: 1200 }
+      ],
+      archive: "personnel",
+      choices: [
+        { text: "Аня существует. Я с ней разговаривал.", next: "anyaReturns", set: { alliance: "anya" }, trust: 1 },
+        { text: "Докажи, что ты настоящий.", next: "dimaProof", set: { alliance: "dima" } },
+        { text: "Я не доверяю ни одному из вас.", next: "neutralPath", set: { alliance: "none" } }
+      ]
+    },
+    anyaReturns: {
+      contact: "Аня / Канал 07",
+      messages: [
+        { type: "system", text: "КАНАЛ 12 ПРИНУДИТЕЛЬНО ОТКЛЮЧЁН.", delay: 500 },
+        { text: "Он уже нашёл тебя?", delay: 800 },
+        { text: "Дима — предыдущий оператор. Я видела его имя в журнале, но запись появилась только после твоего выбора.", delay: 1250 },
+        { text: "Если он попросит настроиться на 87.2 — не делай этого. Там записаны голоса тех, кто ответил.", delay: 1300 },
+        { text: "Я покажу тебе коридор. Посчитай красные лампы.", delay: 1000 },
+        { type: "photo", src: CORRIDOR_SRC, delay: 1200 }
+      ],
+      choices: [
+        { text: "Я вижу три красные лампы.", next: "corridorSolved", set: { lamps: 3 }, trust: 1 },
+        { text: "Кажется, две.", next: "corridorMistake", set: { lamps: 2 } },
+        { text: "Четыре. Одна возле телефона.", next: "corridorMistake", set: { lamps: 4 } }
+      ]
+    },
+    dimaProof: {
+      contact: "Дима / Канал 12",
+      messages: [
+        { text: "Хорошо. Открой архив и сравни время всех сообщений.", delay: 950 },
+        { text: "Первый контакт всегда происходит в 00:17 — независимо от времени на телефоне.", delay: 1200 },
+        { text: "В моём сеансе было так же. И в журнале за 1998-й тоже.", delay: 1200 },
+        { text: "Аня сейчас пришлёт коридор. Она всегда это делает.", delay: 1000 },
+        { type: "system", text: "ПОЛУЧЕН ФАЙЛ С КАНАЛА 07.", delay: 650 },
+        { type: "photo", src: CORRIDOR_SRC, delay: 1200 }
+      ],
+      archive: "cycle",
+      choices: [
+        { text: "Три красные лампы. Телефон за дверью.", next: "corridorSolved", set: { lamps: 3 } },
+        { text: "Что означает время 00:17?", next: "timeClue", trust: 1 }
+      ]
+    },
+    neutralPath: {
+      contact: "Канал 00",
+      messages: [
+        { type: "system", text: "КАНАЛЫ 07 И 12 ЗАБЛОКИРОВАНЫ ПОЛЬЗОВАТЕЛЕМ.", delay: 600 },
+        { text: "{name}.", delay: 1200 },
+        { text: "Правильно. Не доверяй голосам.", delay: 1200 },
+        { text: "Доверяй повторениям.", delay: 1100 },
+        { type: "photo", src: CORRIDOR_SRC, delay: 1100 },
+        { text: "Три огня. Четыре цифры. Одно и то же время.", delay: 1100 }
+      ],
+      choices: [{ text: "00:17", next: "timeClue", set: { noticedLoop: true } }]
+    },
+    corridorMistake: {
+      contact: "Аня / Канал 07",
+      messages: [
+        { text: "Нет. Посмотри ещё раз, не на телефон — на левую стену.", delay: 900 },
+        { text: "Три лампы. Они мигают группами: ноль, семь, один, семь.", delay: 1200 },
+        { text: "Это не азбука Морзе. Это время первого сообщения.", delay: 1100 }
+      ],
+      choices: [{ text: "00:17. Значит, код 0717.", next: "timeClue", set: { noticedLoop: true } }]
+    },
+    corridorSolved: {
+      messages: [
+        { text: "Да. Три лампы, но на записи слышны четыре группы импульсов.", delay: 900 },
+        { type: "audio", delay: 750 },
+        { text: "0 — 7 — 1 — 7. Время, когда линия впервые проснулась.", delay: 1150 }
+      ],
+      archive: "corridor",
+      choices: [{ text: "Использовать 0717 как код архива", next: "awaitVault", action: "openCode", code: "0717", codeTitle: "Код архивного сейфа", codeNext: "vaultOpen" }]
+    },
+    timeClue: {
+      messages: [
+        { text: "00:17 повторяется в каждом сеансе.", delay: 900 },
+        { text: "Если убрать двоеточие, получится код сейфа в комнате дежурного.", delay: 1050 }
+      ],
+      archive: "corridor",
+      choices: [{ text: "Ввести 0717", next: "awaitVault", action: "openCode", code: "0717", codeTitle: "Код архивного сейфа", codeNext: "vaultOpen" }]
+    },
+    awaitVault: { messages: [], event: "awaitVault" },
+    vaultOpen: {
+      contact: "Общий канал",
+      messages: [
+        { type: "system", text: "АРХИВНЫЙ СЕЙФ ОТКРЫТ. ВОССТАНОВЛЕНО 11 СЕАНСОВ.", delay: 650 },
+        { text: "1998 — Анна, канал 07.", delay: 850 },
+        { text: "2011 — Дмитрий, канал 12.", delay: 850 },
+        { text: "2026 — {name}, оператор 03.", delay: 900 },
+        { text: "У всех записей одинаковая последняя фраза: «Я слышу тебя своим голосом».", delay: 1300 },
+        { text: "Станция сохраняет не людей. Она сохраняет последнее, чему поверили.", delay: 1300 }
+      ],
+      archive: "eleven",
+      choices: [
+        { text: "Аня, скажи то, чего станция не может знать.", next: "anyaSecret", set: { alliance: "anya" } },
+        { text: "Дима, как остановить повторение?", next: "dimaPlan", set: { alliance: "dima" } },
+        { text: "Пусть оба замолчат на десять секунд.", next: "silenceTest", set: { alliance: "none" }, trust: 1 }
+      ]
+    },
+    anyaSecret: {
+      contact: "Аня / Канал 07",
+      messages: [
+        { text: "Я не могу доказать, что я — это я.", delay: 950 },
+        { text: "Но станция боится тишины. Когда я перестала отвечать, стены вернулись на место.", delay: 1200 },
+        { text: "Настрой 90.7. Там не голос — промежутки между словами.", delay: 1200 },
+        { text: "И если я начну просить открыть переход, отключи меня.", delay: 1100 }
+      ],
+      archive: "anya_note",
+      choices: [{ text: "Я запомню.", next: "secondCallWarning", set: { targetFrequency: 907, frequencyNext: "finalSignalAnya" } }]
+    },
+    dimaPlan: {
+      contact: "Дима / Канал 12",
+      messages: [
+        { text: "У станции два передатчика. 88.4 хранит речь. 87.2 хранит момент до ответа.", delay: 1100 },
+        { text: "На 87.2 ты услышишь оригинал, а не копию.", delay: 1100 },
+        { text: "Но после прослушивания один из нас исчезнет.", delay: 1000 },
+        { text: "Не позволяй Ане позвонить тебе раньше.", delay: 1000 }
+      ],
+      archive: "dima_note",
+      choices: [{ text: "Настроюсь на 87.2.", next: "secondCallWarning", set: { targetFrequency: 872, frequencyNext: "finalSignalDima" } }]
+    },
+    silenceTest: {
+      contact: "Общий канал",
+      messages: [
+        { type: "system", text: "ТАЙМЕР ТИШИНЫ: 10", delay: 500 },
+        { type: "system", text: "9… 8… 7…", delay: 1200 },
+        { type: "system", text: "6… 5… 4…", delay: 1200 },
+        { type: "system", text: "КАНАЛ 00 ПЫТАЕТСЯ ИМИТИРОВАТЬ ВХОДЯЩИЙ ВЫЗОВ.", delay: 900 },
+        { type: "system", text: "3… 2… 1… ТИШИНА ПОДТВЕРЖДЕНА.", delay: 1400 },
+        { text: "Ты нашёл единственное, чего здесь не было в одиннадцати сеансах.", delay: 1100 }
+      ],
+      archive: "silence",
+      choices: [{ text: "Слушать пустую частоту 90.7", next: "secondCallWarning", set: { targetFrequency: 907, frequencyNext: "finalSignalSilence", silenceFound: true } }]
+    },
+    secondCallWarning: {
+      messages: [
+        { type: "system", text: "ВХОДЯЩИЙ ВЫЗОВ: «АНЯ / 2026». ИДЕНТИФИКАЦИЯ НЕВОЗМОЖНА.", delay: 800 }
+      ],
+      event: "secondCall"
+    },
+    secondCallAnswered: {
+      messages: [
+        { type: "system", text: "ВЫЗОВ ЗАВЕРШЁН. В ГОЛОСЕ ОБНАРУЖЕНО ДВА ИСТОЧНИКА.", delay: 700 },
+        { text: "Ты слышал паузы? Второй голос говорил только тогда, когда первый молчал.", delay: 1050 },
+        { text: "Теперь приёмник покажет нужную частоту. Не слушай дольше семи секунд.", delay: 1100 }
+      ],
+      choices: [{ text: "Открыть приёмник", next: "awaitFinalFrequency", action: "prepareFrequency" }]
+    },
+    secondCallDeclined: {
+      messages: [
+        { type: "system", text: "ВЫЗОВ ОТКЛОНЁН. КАНАЛ 00 ПОТЕРЯЛ СИНХРОНИЗАЦИЮ.", delay: 650 },
+        { text: "Хорошо. Ты не дал ему ещё один образец голоса.", delay: 950 },
+        { text: "Теперь настрой частоту, которую выбрал.", delay: 1000 }
+      ],
+      choices: [{ text: "Открыть приёмник", next: "awaitFinalFrequency", action: "prepareFrequency" }]
+    },
+    awaitFinalFrequency: { messages: [], event: "awaitFinalFrequency" },
+    finalSignalAnya: {
+      contact: "Частота 90.7",
+      messages: [
+        { type: "system", text: "90.7 МГц. РАСПОЗНАНЫ ИНТЕРВАЛЫ ТИШИНЫ.", delay: 600 },
+        { type: "audio", delay: 700 },
+        { text: "В паузах слышен настоящий коридор: дождь, шаги Ани и пожарная сирена.", delay: 1100 },
+        { text: "А её голос продолжает говорить даже после того, как шаги прекращаются.", delay: 1200 }
+      ],
+      archive: "original",
+      choices: [{ text: "Вернуться к щиту управления", next: "finalChoice" }]
+    },
+    finalSignalDima: {
+      contact: "Частота 87.2",
+      messages: [
+        { type: "system", text: "87.2 МГц. ВОССТАНОВЛЕН ИСХОДНЫЙ СЕАНС 2011 ГОДА.", delay: 600 },
+        { type: "audio", delay: 700 },
+        { text: "На записи Дима предупреждает тебя твоим голосом — за пятнадцать лет до установки приложения.", delay: 1250 },
+        { text: "В конце он произносит код, которого ещё не знает: 0717.", delay: 1100 }
+      ],
+      archive: "original",
+      choices: [{ text: "Вернуться к щиту управления", next: "finalChoice" }]
+    },
+    finalSignalSilence: {
+      contact: "Пустая частота",
+      messages: [
+        { type: "system", text: "90.7 МГц. РЕЧЕВОЙ СИГНАЛ ОТСУТСТВУЕТ.", delay: 600 },
+        { type: "audio", delay: 700 },
+        { text: "Семь секунд нет ни голоса, ни помех.", delay: 1000 },
+        { text: "Затем все одиннадцать сохранённых собеседников одновременно делают вдох.", delay: 1300 },
+        { text: "Но никто не успевает заговорить.", delay: 950 }
+      ],
+      archive: "original",
+      choices: [{ text: "Вернуться к щиту управления", next: "finalChoice" }]
+    },
+    finalChoice: {
+      contact: "Щит управления",
+      messages: [
+        { type: "system", text: "ДО КОНЦА ЦИКЛА: 00:01:17.", delay: 650 },
+        { text: "На щите появились пять команд.", delay: 850 },
+        { text: "Станция ждёт не правильного ответа. Она ждёт, что ты снова выберешь чей-то голос.", delay: 1200 },
+        { text: "{name}, это последний выбор.", delay: 950 }
+      ],
+      choices: [
+        { text: "ОБЕСТОЧИТЬ — оставить линию в полной тишине", ending: "silence" },
+        { text: "КАНАЛ 07 — вывести Аню", ending: "save_anya" },
+        { text: "КАНАЛ 12 — вывести Диму", ending: "save_dima" },
+        { text: "УДЕРЖАНИЕ — остаться новым оператором", ending: "operator" },
+        { text: "КАНАЛ 00 — ответить всем голосам", ending: "chorus" }
       ]
     }
   };
@@ -158,24 +407,42 @@
   const archiveCatalog = {
     shift: { title: "ЖУРНАЛ СМЕНЫ / 17.10.98", time: "23:41", text: "Основная частота — 88.4 МГц. При нарушении синхронизации использовать тональный резерв. Не отвечать на линию 00." },
     protocol: { title: "ПРОТОКОЛ 4—1—9", time: "00:07", text: "Три группы импульсов управляют ручной коммутацией. Код меняется после каждого завершённого сеанса." },
-    operator: { title: "ЛИЧНОЕ ДЕЛО / ОПЕРАТОР 03", time: "2026", text: "Имя совпадает с текущим пользователем. Дата первого подключения отсутствует. Статус: активен." }
+    operator: { title: "ЛИЧНОЕ ДЕЛО / ОПЕРАТОР 03", time: "2026", text: "Имя совпадает с текущим пользователем. Дата первого подключения отсутствует. Статус: активен." },
+    personnel: { title: "КАРТОТЕКА / НЕОПОЗНАННЫЙ СОТРУДНИК", time: "1998", text: "Фотография найдена в личном деле без имени и табельного номера. На обороте карандашом: «не давать ей телефон»." },
+    cycle: { title: "СВОДКА ПОВТОРЕНИЙ", time: "00:17", text: "Все зарегистрированные сеансы начинаются в 00:17 по локальному времени принимающего устройства." },
+    corridor: { title: "КОРИДОР / КАМЕРА 03", time: "00:17", text: "Три красных индикатора передают четыре группы: 0—7—1—7. Источник изображения отсутствует." },
+    eleven: { title: "АРХИВ 11 СЕАНСОВ", time: "1998—2026", text: "Каждый оператор слышал знакомый голос. Ни один не завершил связь до появления канала 00." },
+    anya_note: { title: "ЗАПИСКА КАНАЛА 07", time: "90.7", text: "Содержимое речи копируется. Промежутки тишины остаются оригинальными." },
+    dima_note: { title: "ЗАПИСКА КАНАЛА 12", time: "87.2", text: "Резервный передатчик хранит семь секунд до первого ответа оператора." },
+    silence: { title: "ТЕСТ ТИШИНЫ", time: "00:10", text: "Впервые зафиксирован интервал, в котором ни один участник не ответил линии." },
+    original: { title: "ИСХОДНЫЙ СИГНАЛ", time: "7 сек.", text: "Различие между копией и человеком обнаруживается только в паузах между словами." }
   };
 
   const endings = {
-    break: {
-      title: "Линия разорвана",
-      text: "Ты выключаешь передатчик. Голос Ани исчезает на полуслове, а таймер останавливается за секунду до нуля. Утром в архиве появляется новый файл: фотография станции после пожара. На обороте — «Спасибо, что поверил».",
-      label: "КОНЦОВКА 1/3 · ТИШИНА"
+    silence: {
+      title: "Семь секунд тишины",
+      text: "Ты обесточиваешь оба передатчика и не отвечаешь на последний вопрос. Одиннадцать голосов произносят твоё имя, но ты позволяешь им исчезнуть. Утром приложение пусто. Только в архиве остаётся семисекундная запись дождя — без слов.",
+      label: "КОНЦОВКА 1/5 · ТИШИНА"
     },
-    hold: {
-      title: "Новый оператор",
-      text: "Ты удерживаешь канал. Аня успевает выйти из здания, но линия остаётся открытой. Через несколько секунд телефон звонит снова — теперь на экране номер человека, который ещё не установил приложение. В журнале твоё имя меняется на «Дежурный 03».",
-      label: "КОНЦОВКА 2/3 · ДЕЖУРСТВО"
+    save_anya: {
+      title: "Девушка без фамилии",
+      text: "Ты открываешь канал 07. Аня выходит из станции в ночь 2026 года и присылает фотографию мокрой дороги. Через минуту сообщение исчезает, но на исходной архивной фотографии появляется её фамилия. Неизвестно, кого именно ты спас — человека или память, научившуюся молчать.",
+      label: "КОНЦОВКА 2/5 · КАНАЛ 07"
     },
-    cross: {
-      title: "Лишний пассажир",
-      text: "Ты включаешь переход. В аппаратной становится тихо. Аня пишет: «Я вижу твой свет». Сообщение приходит уже с сегодняшней датой. За дверью слышатся три коротких стука — и четвёртый, слишком медленный, отвечает изнутри телефона.",
-      label: "КОНЦОВКА 3/3 · ПЕРЕХОД"
+    save_dima: {
+      title: "Опоздавший на пятнадцать лет",
+      text: "Ты выводишь канал 12. Дима появляется возле закрытой станции в 2026 году, не постарев ни на день. Он благодарит тебя и просит никогда больше не открывать приложение. Но последнее сообщение приходит с канала 07: «Это не Дима».",
+      label: "КОНЦОВКА 3/5 · КАНАЛ 12"
+    },
+    operator: {
+      title: "Дежурный 03",
+      text: "Ты удерживаешь линию, чтобы Аня и Дима не исчезли. Таймер сбрасывается на 00:17, а твой голос становится спокойнее и старше. На другом телефоне кто-то впервые открывает «Ночную линию» и видит сообщение: «Пожалуйста, ответь».",
+      label: "КОНЦОВКА 4/5 · НОВЫЙ ОПЕРАТОР"
+    },
+    chorus: {
+      title: "Все голоса сразу",
+      text: "Ты отвечаешь каналу 00. Станция получает то, чего ей не хватало: твой добровольный голос. Аня, Дима и ещё девять человек начинают говорить одновременно, складываясь в одну идеальную копию. Приложение закрывается. Затем звонит обычный телефон.",
+      label: "КОНЦОВКА 5/5 · ХОР"
     }
   };
 
@@ -186,7 +453,22 @@
   function load() {
     try {
       const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
-      if (saved && saved.name && Array.isArray(saved.history)) state = saved;
+      if (saved && saved.name && Array.isArray(saved.history)) {
+        state = saved;
+        state.flags = { ...freshState().flags, ...(state.flags || {}) };
+        state.entered = Array.isArray(state.entered) ? state.entered : [];
+        state.archives = Array.isArray(state.archives) ? state.archives : [];
+        if (!state.version) {
+          const oldEnding = ["break", "hold", "cross"].includes(state.ending) ? state.ending : null;
+          state.version = 2;
+          if (oldEnding) {
+            state.flags.midpoint = oldEnding;
+            state.ending = null;
+            state.node = `after_${oldEnding}`;
+          }
+          save();
+        }
+      }
     } catch (_) {}
   }
 
@@ -348,21 +630,39 @@
     if (choice.trust) state.flags.trust += choice.trust;
     if (choice.truth) state.flags.toldTruth = true;
     if (choice.figure) state.flags.sawFigure = true;
+    if (choice.set) Object.assign(state.flags, choice.set);
     save();
     if (choice.action === "openFrequency") switchView("frequency-view");
-    if (choice.action === "openCode") openCode();
+    if (choice.action === "prepareFrequency") prepareFinalFrequency();
+    if (choice.action === "openCode") openCode(choice.code, choice.codeTitle, choice.codeNext);
+    if (choice.midpoint) return beginMidpoint(choice.midpoint);
     if (choice.ending) return showEnding(choice.ending);
     if (choice.next) runNode(choice.next);
   }
 
   function handleEvent(event) {
-    if (event === "incomingCall") openIncomingCall();
+    if (event === "incomingCall") openIncomingCall("first");
+    if (event === "secondCall") openIncomingCall("second");
     if (event === "awaitSignal" && state.flags.signalFound) runNode("signalFound");
     if (event === "awaitCode" && state.flags.codeAccepted) runNode("codeAccepted");
+    if (event === "awaitVault" && state.flags.vaultAccepted) runNode("vaultOpen");
+    if (event === "awaitFinalFrequency" && state.flags.finalSignalFound) runNode(state.flags.frequencyNext);
   }
 
-  function openIncomingCall() {
-    if (state.flags.callResolved) return;
+  function beginMidpoint(id) {
+    state.flags.midpoint = id;
+    state.ending = null;
+    state.version = 2;
+    save();
+    runNode(`after_${id}`);
+  }
+
+  function openIncomingCall(mode = "first") {
+    if (mode === "first" && state.flags.callResolved) return;
+    if (mode === "second" && state.flags.secondCallResolved) return;
+    state.flags.callMode = mode;
+    $("#caller-name").textContent = mode === "second" ? "АНЯ / 2026" : "НЕИЗВЕСТНЫЙ";
+    $("#call-number").textContent = mode === "second" ? "Канал 07 + Канал 00" : "+7 ••• ••• 07 07";
     $("#call-overlay").classList.remove("hidden");
     startRing();
   }
@@ -385,6 +685,13 @@
   function declineCall() {
     stopRing();
     $("#call-overlay").classList.add("hidden");
+    if (state.flags.callMode === "second") {
+      state.flags.secondCallResolved = true;
+      state.flags.secondAnswered = false;
+      save();
+      addHistory({ type: "system", text: "ВТОРОЙ ВЫЗОВ ОТКЛОНЁН ПОЛЬЗОВАТЕЛЕМ." });
+      return runNode("secondCallDeclined");
+    }
     state.flags.callResolved = true;
     state.flags.trust += 1;
     save();
@@ -396,8 +703,13 @@
     stopRing();
     $("#call-overlay").classList.add("hidden");
     $("#active-call").classList.remove("hidden");
-    state.flags.answered = true;
-    state.flags.callResolved = true;
+    if (state.flags.callMode === "second") {
+      state.flags.secondCallResolved = true;
+      state.flags.secondAnswered = true;
+    } else {
+      state.flags.answered = true;
+      state.flags.callResolved = true;
+    }
     save();
     startActiveCall();
   }
@@ -405,12 +717,20 @@
   function startActiveCall() {
     let seconds = 0;
     const transcript = $("#call-transcript");
-    const lines = [
+    const second = state.flags.callMode === "second";
+    const lines = second ? [
+      "…не говори ничего…",
+      "слушай только паузы между словами…",
+      "я — Аня… я — Дима… я — ты…",
+      "оно не умеет молчать…"
+    ] : [
       "…слышишь меня?",
       `${state.name}… не включай переход…`,
       "это не Аня… она уже вышла…",
       "ты говоришь моим голосом…"
     ];
+    $("#call-timer").textContent = "00:00";
+    transcript.textContent = lines[0];
     playDrone(true);
     drawCallWave();
     callTimer = setInterval(() => {
@@ -429,8 +749,9 @@
     callTimer = null;
     cancelAnimationFrame(waveformFrame);
     $("#active-call").classList.add("hidden");
-    addHistory({ type: "system", text: "ДЛИТЕЛЬНОСТЬ ВЫЗОВА: 00:11." });
-    runNode("answered");
+    const second = state.flags.callMode === "second";
+    addHistory({ type: "system", text: second ? "ДЛИТЕЛЬНОСТЬ ВТОРОГО ВЫЗОВА: 00:11." : "ДЛИТЕЛЬНОСТЬ ВЫЗОВА: 00:11." });
+    runNode(second ? "secondCallAnswered" : "answered");
   }
 
   function openMedia(src) {
@@ -514,7 +835,8 @@
   }
 
   function drawFrequency() {
-    drawWave($("#waveform"), Number($("#frequency-range").value) === 884, Date.now() / 300);
+    const target = state.flags.finalFrequencyActive ? Number(state.flags.targetFrequency || 907) : 884;
+    drawWave($("#waveform"), Number($("#frequency-range").value) === target, Date.now() / 300);
   }
 
   function drawCallWave() {
@@ -524,14 +846,23 @@
 
   function listenFrequency() {
     const value = Number($("#frequency-range").value);
+    const finalStage = Boolean(state.flags.finalFrequencyActive);
+    const target = finalStage ? Number(state.flags.targetFrequency || 907) : 884;
     playDrone();
-    if (value === 884) {
+    if (value === target) {
       playSignal({ textContent: "" });
       haptic([40, 70, 40, 70, 120]);
-      $("#code-hint").textContent = "419";
+      $("#code-hint").textContent = finalStage ? (target / 10).toFixed(1) : "419";
       $("#code-hint").classList.add("revealed");
-      $("#listen-button").textContent = "СИГНАЛ НАЙДЕН · 4—1—9";
-      if (!state.flags.signalFound) {
+      $("#listen-button").textContent = finalStage ? `СИГНАЛ НАЙДЕН · ${(target / 10).toFixed(1)}` : "СИГНАЛ НАЙДЕН · 4—1—9";
+      if (finalStage && !state.flags.finalSignalFound) {
+        state.flags.finalSignalFound = true;
+        save();
+        setTimeout(() => {
+          switchView("chat-view");
+          runNode(state.flags.frequencyNext || "finalSignalSilence");
+        }, 1700);
+      } else if (!finalStage && !state.flags.signalFound) {
         state.flags.signalFound = true;
         save();
         setTimeout(() => {
@@ -545,6 +876,20 @@
     }
   }
 
+  function prepareFinalFrequency() {
+    state.flags.finalFrequencyActive = true;
+    state.flags.finalSignalFound = false;
+    const range = $("#frequency-range");
+    range.value = state.flags.targetFrequency === 872 ? 884 : 895;
+    $("#frequency-number").textContent = (Number(range.value) / 10).toFixed(1);
+    $("#code-hint").textContent = "███";
+    $("#code-hint").classList.remove("revealed");
+    $("#listen-button").textContent = "СЛУШАТЬ СИГНАЛ";
+    save();
+    switchView("frequency-view");
+    drawFrequency();
+  }
+
   function buildKeypad() {
     const keypad = $("#keypad");
     keypad.replaceChildren();
@@ -556,8 +901,16 @@
     });
   }
 
-  function openCode() {
+  function openCode(expected = "419", title = "Введите резервный код", nextNode = "codeAccepted") {
     code = "";
+    state.flags.expectedCode = expected || "419";
+    state.flags.codeNext = nextNode || "codeAccepted";
+    const digits = $("#code-digits");
+    digits.replaceChildren();
+    for (let index = 0; index < state.flags.expectedCode.length; index += 1) {
+      digits.appendChild(document.createElement("span"));
+    }
+    $("#code-overlay h2").textContent = title || "Введите резервный код";
     updateCode();
     $("#code-error").textContent = "";
     $("#code-overlay").classList.remove("hidden");
@@ -567,19 +920,21 @@
     haptic(12);
     if (key === "←") code = code.slice(0, -1);
     else if (key === "✓") {
-      if (code === "419") {
-        state.flags.codeAccepted = true;
+      if (code === state.flags.expectedCode) {
+        const nextNode = state.flags.codeNext || "codeAccepted";
+        if (code === "419") state.flags.codeAccepted = true;
+        if (code === "0717") state.flags.vaultAccepted = true;
         save();
         $("#code-overlay").classList.add("hidden");
         switchView("chat-view");
-        return runNode("codeAccepted");
+        return runNode(nextNode);
       }
       state.flags.mistakes += 1;
       save();
       $("#code-error").textContent = "КОД НЕ ПРИНЯТ";
       haptic([60, 50, 60]);
       code = "";
-    } else if (code.length < 3) code += key;
+    } else if (code.length < String(state.flags.expectedCode || "419").length) code += key;
     updateCode();
   }
 
@@ -634,7 +989,9 @@
       $("#boot-screen").classList.remove("hidden");
     });
     $("#player-name").addEventListener("input", event => {
-      $("#profile-submit").disabled = event.target.value.trim().length < 2;
+      const disabled = event.target.value.trim().length < 2;
+      $("#profile-submit").disabled = disabled;
+      $("#checkpoint-start").disabled = disabled;
     });
     $("#profile-submit").addEventListener("click", () => {
       state = freshState();
@@ -642,6 +999,22 @@
       save();
       resumeGame();
     });
+    $("#checkpoint-start").addEventListener("click", () => $("#checkpoint-overlay").classList.remove("hidden"));
+    $("#close-checkpoint").addEventListener("click", () => $("#checkpoint-overlay").classList.add("hidden"));
+    $$("#checkpoint-overlay [data-midpoint]").forEach(button => button.addEventListener("click", () => {
+      state = freshState();
+      state.name = $("#player-name").value.trim();
+      state.flags.midpoint = button.dataset.midpoint;
+      state.node = `after_${button.dataset.midpoint}`;
+      state.history.push({
+        type: "system",
+        text: `ПРОЛОГ ВОССТАНОВЛЕН. ПОСЛЕДНИЙ ВЫБОР: ${button.textContent}.`,
+        time: now()
+      });
+      save();
+      $("#checkpoint-overlay").classList.add("hidden");
+      resumeGame();
+    }));
     $$(".nav-button").forEach(button => button.addEventListener("click", () => switchView(button.dataset.view)));
     $("#frequency-range").addEventListener("input", event => {
       $("#frequency-number").textContent = (Number(event.target.value) / 10).toFixed(1);

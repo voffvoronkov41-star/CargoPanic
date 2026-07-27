@@ -1,11 +1,11 @@
 {
-  "name": "cargo-panic",
+  "name": "night-line",
   "version": "1.0.0",
   "private": true,
-  "description": "Original Android-ready crate stacking arcade game",
+  "description": "Ночная линия — интерактивный мистический триллер для Android",
   "scripts": {
     "serve": "http-server www -p 8080 -c-1",
-    "test": "node tests/smoke.mjs",
+    "test": "node tests/story.test.mjs && node tests/ui.test.mjs",
     "android:sync": "npx cap sync android",
     "android:open": "npx cap open android"
   },
