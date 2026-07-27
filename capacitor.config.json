@@ -1,6 +1,6 @@
 {
-  "appId": "com.cargopanic.game",
-  "appName": "Cargo Panic",
+  "appId": "com.nightline.signal",
+  "appName": "Ночная линия",
   "webDir": "www",
   "server": { "androidScheme": "https" }
 }
