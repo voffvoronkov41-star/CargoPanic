@@ -1,34 +1,36 @@
-name: Build Cargo Panic APK
+name: Build Night Line APK
 
 on:
-  workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [night-line-v1]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Java 21
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install web dependencies
+        run: npm ci
+
+      - name: Sync Android project
+        run: npx cap sync android
+
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '21'
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-
-      - name: Install Capacitor dependencies
-        run: npm ci
-
-      - name: Sync Capacitor Android project
-        run: npx cap sync android
+          java-version: "21"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -39,9 +41,9 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      - name: Upload installable APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: CargoPanic-debug-apk
+          name: NightLine-v0.1.0-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
