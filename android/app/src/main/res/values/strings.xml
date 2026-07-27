@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Cargo Panic</string>
-    <string name="title_activity_main">Cargo Panic</string>
-    <string name="package_name">com.cargopanic.game</string>
-    <string name="custom_url_scheme">com.cargopanic.game</string>
+    <string name="app_name">Ночная линия</string>
+    <string name="title_activity_main">Ночная линия</string>
+    <string name="package_name">com.nightline.signal</string>
+    <string name="custom_url_scheme">com.nightline.signal</string>
 </resources>
