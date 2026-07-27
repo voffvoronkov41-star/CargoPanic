@@ -1,76 +1,126 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
-  <meta name="theme-color" content="#17242a" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <title>Cargo Panic</title>
-  <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#090b0b">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Ночная линия — интерактивный мистический триллер">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icon.svg">
+  <link rel="stylesheet" href="styles.css">
+  <title>Ночная линия</title>
 </head>
 <body>
-  <main id="app">
-    <section id="gameShell" aria-label="Cargo Panic">
-      <canvas id="game" width="960" height="540"></canvas>
+  <div id="app">
+    <section id="boot-screen" class="screen boot-screen">
+      <div class="scanlines"></div>
+      <div class="boot-mark" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+      <p class="eyebrow">СЛУЖБА СВЯЗИ / АРХИВ 07</p>
+      <h1>НОЧНАЯ<br>ЛИНИЯ</h1>
+      <p class="boot-copy">Обнаружен незавершённый сеанс связи.<br>Дата создания: 17 октября 1998 года.</p>
+      <button id="boot-start" class="primary-button">ВОССТАНОВИТЬ КАНАЛ</button>
+      <p class="warning">Лучше проходить в наушниках. Игра использует звук и вибрацию.</p>
+    </section>
 
-      <header class="hud" aria-live="polite">
-        <div><span>СЧЁТ</span><strong id="score">0</strong></div>
-        <div><span>УРОВЕНЬ</span><strong id="level">1</strong></div>
-        <div><span>РЕКОРД</span><strong id="highScore">0</strong></div>
-        <button id="pauseBtn" class="icon-btn" aria-label="Пауза">Ⅱ</button>
+    <section id="profile-screen" class="screen profile-screen hidden">
+      <button class="back-plain" id="profile-back" aria-label="Назад">←</button>
+      <div class="profile-card">
+        <p class="eyebrow">ИДЕНТИФИКАЦИЯ ОПЕРАТОРА</p>
+        <h2>Как к тебе обращаться?</h2>
+        <p>Имя останется только на этом устройстве и станет частью истории.</p>
+        <label for="player-name">Позывной</label>
+        <input id="player-name" maxlength="16" autocomplete="off" placeholder="Введите имя">
+        <button id="profile-submit" class="primary-button" disabled>ПОДКЛЮЧИТЬСЯ</button>
+      </div>
+    </section>
+
+    <main id="game-screen" class="screen game-screen hidden">
+      <header class="topbar">
+        <div class="contact-avatar"><span>07</span><i></i></div>
+        <div class="contact-info"><strong id="contact-name">Канал 07</strong><span id="contact-status">нет сигнала</span></div>
+        <button id="signal-button" class="signal-chip" aria-label="Уровень сигнала"><i></i><i></i><i></i><i></i></button>
       </header>
 
-      <div id="startScreen" class="overlay visible">
-        <div class="panel">
-          <p class="eyebrow">АРКАДА НА СКЛАДЕ</p>
-          <h1>CARGO<br><em>PANIC</em></h1>
-          <p>Толкай ящики и собирай полные ряды. Следи за краном — груз не ждёт!</p>
-          <button id="startBtn" class="primary">НАЧАТЬ СМЕНУ</button>
-          <button id="howBtn" class="secondary">КАК ИГРАТЬ</button>
-        </div>
-      </div>
+      <section id="chat-view" class="view active" aria-label="Диалог">
+        <div id="messages" class="messages" aria-live="polite"></div>
+        <div id="typing" class="typing hidden"><i></i><i></i><i></i></div>
+        <div id="choices" class="choices"></div>
+      </section>
 
-      <div id="howScreen" class="overlay">
-        <div class="panel compact">
-          <h2>Как играть</h2>
-          <ul>
-            <li>Двигайся кнопками слева и справа.</li>
-            <li>Ящики толкаются автоматически.</li>
-            <li>Кнопка вверх помогает взобраться или толкнуть верхний ящик.</li>
-            <li>Полный ряд исчезает и приносит очки.</li>
-            <li>Не стой под падающим грузом.</li>
-          </ul>
-          <button id="howCloseBtn" class="primary">ПОНЯТНО</button>
-        </div>
-      </div>
+      <section id="archive-view" class="view" aria-label="Архив">
+        <div class="section-heading"><p class="eyebrow">ВОССТАНОВЛЕННЫЕ ДАННЫЕ</p><h2>Архив</h2></div>
+        <div id="archive-list" class="archive-list"></div>
+      </section>
 
-      <div id="pauseScreen" class="overlay">
-        <div class="panel compact">
-          <p class="eyebrow">ПЕРЕРЫВ</p>
-          <h2>Пауза</h2>
-          <button id="resumeBtn" class="primary">ПРОДОЛЖИТЬ</button>
-          <button id="restartPauseBtn" class="secondary">НАЧАТЬ ЗАНОВО</button>
+      <section id="frequency-view" class="view" aria-label="Частоты">
+        <div class="section-heading"><p class="eyebrow">АНАЛОГОВЫЙ ПРИЁМНИК</p><h2>Частота</h2></div>
+        <div class="frequency-display">
+          <div class="frequency-value"><span id="frequency-number">88.4</span><small>МГц</small></div>
+          <canvas id="waveform" width="680" height="220"></canvas>
+          <input id="frequency-range" type="range" min="870" max="920" value="884" step="1" aria-label="Настройка частоты">
+          <div class="range-labels"><span>87.0</span><span>92.0</span></div>
+          <button id="listen-button" class="secondary-button">СЛУШАТЬ СИГНАЛ</button>
         </div>
-      </div>
+        <article class="receiver-note">
+          <strong>Памятка дежурного</strong>
+          <p>Основная частота: 88.4 МГц<br>Резервный код коммутации: <span class="redacted" id="code-hint">███</span></p>
+        </article>
+      </section>
 
-      <div id="gameOverScreen" class="overlay">
-        <div class="panel compact">
-          <p class="eyebrow">СМЕНА ОКОНЧЕНА</p>
-          <h2>Груз настиг тебя</h2>
-          <p>Результат: <strong id="finalScore">0</strong></p>
-          <p id="newRecord" class="record">НОВЫЙ РЕКОРД!</p>
-          <button id="restartBtn" class="primary">ЕЩЁ РАЗ</button>
-        </div>
-      </div>
-
-      <nav class="controls" aria-label="Управление">
-        <button id="leftBtn" aria-label="Влево">◀</button>
-        <button id="rightBtn" aria-label="Вправо">▶</button>
-        <button id="climbBtn" class="climb" aria-label="Взобраться или толкнуть верхний ящик">▲</button>
+      <nav class="bottom-nav">
+        <button class="nav-button active" data-view="chat-view"><span class="nav-icon">◌</span><span>Линия</span><b id="unread-dot" class="hidden"></b></button>
+        <button class="nav-button" data-view="archive-view"><span class="nav-icon">▤</span><span>Архив</span></button>
+        <button class="nav-button" data-view="frequency-view"><span class="nav-icon">⌁</span><span>Частота</span></button>
       </nav>
-    </section>
-  </main>
-  <script src="game.js"></script>
+    </main>
+
+    <aside id="call-overlay" class="overlay call-overlay hidden" role="dialog" aria-modal="true">
+      <div class="call-noise"></div>
+      <p>ВХОДЯЩИЙ ВЫЗОВ</p>
+      <div class="caller-orbit"><div class="caller-avatar">?</div></div>
+      <h2 id="caller-name">НЕИЗВЕСТНЫЙ</h2>
+      <span id="call-number">+7 ••• ••• 07 07</span>
+      <div class="call-actions">
+        <button id="decline-call" class="call-action decline"><span>×</span>Отклонить</button>
+        <button id="accept-call" class="call-action accept"><span>⌕</span>Ответить</button>
+      </div>
+    </aside>
+
+    <aside id="active-call" class="overlay active-call hidden" role="dialog" aria-modal="true">
+      <div class="call-noise"></div>
+      <p>СОЕДИНЕНИЕ УСТАНОВЛЕНО</p>
+      <div id="call-timer" class="call-timer">00:00</div>
+      <canvas id="call-waveform" width="680" height="180"></canvas>
+      <p id="call-transcript" class="call-transcript">…слышишь меня?</p>
+      <button id="end-call" class="hangup-button">ЗАВЕРШИТЬ ВЫЗОВ</button>
+    </aside>
+
+    <aside id="media-overlay" class="overlay media-overlay hidden" role="dialog" aria-modal="true">
+      <button id="close-media" class="close-button" aria-label="Закрыть">×</button>
+      <img id="media-image" alt="Восстановленная фотография станции">
+      <div class="media-caption"><strong>IMG_0717_RECOVERED.PNG</strong><span>Повреждение файла: 14%</span></div>
+    </aside>
+
+    <aside id="code-overlay" class="overlay code-overlay hidden" role="dialog" aria-modal="true">
+      <p class="eyebrow">РУЧНАЯ КОММУТАЦИЯ</p>
+      <h2>Введите резервный код</h2>
+      <div id="code-digits" class="code-digits"><span>—</span><span>—</span><span>—</span></div>
+      <div id="keypad" class="keypad"></div>
+      <p id="code-error" class="code-error"></p>
+      <button id="close-code" class="text-button">ОТМЕНА</button>
+    </aside>
+
+    <aside id="ending-overlay" class="overlay ending-overlay hidden" role="dialog" aria-modal="true">
+      <div class="ending-signal" aria-hidden="true"></div>
+      <p class="eyebrow">СЕАНС ЗАВЕРШЁН</p>
+      <h2 id="ending-title">Линия разорвана</h2>
+      <p id="ending-text"></p>
+      <div id="ending-stats" class="ending-stats"></div>
+      <button id="restart-button" class="secondary-button">НАЧАТЬ СНАЧАЛА</button>
+    </aside>
+  </div>
+  <script src="station-data.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
